@@ -184,6 +184,7 @@ type users<'a> = {
 //   language: option<string>,
 //   prompt: option<string>,
 // }
+
 type authorizeParams
 @bs.obj
 external authorizeParams: (
