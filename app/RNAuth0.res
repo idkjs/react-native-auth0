@@ -24,7 +24,7 @@ type usersOptions = {
 
 type auth0 = {
   //   auth: auth,
-  authorize: (authorizeParams, unit) => Js.Promise.t<credentials>,
+//   authorize: (authorizeParams, unit) => Js.Promise.t<credentials>,
   webAuth: webAuth,
   //   users: (~token: string) => users<'a>,
 }
@@ -45,11 +45,11 @@ type generatedAuth0Client2 = {
 }
 
 type clientOptions = {
-  "domain": string,
-  "clientId": string,
+  domain: string,
+  clientId: string,
 //   "redirectUri": string,
 //   "responseType": string,
-  "scope": string,
+//   "scope": string,
 }
 
 @bs.module("react-native-auth0") @bs.new
@@ -57,9 +57,9 @@ external createClient: clientOptions => 'a = "default"
 // @bs.module("react-native-auth0") @bs.new
 // external createClient: options => auth0 = "default"
 let options: clientOptions = {
-  "clientId": "GDuiq4x1reJXs8a6yDXgqJcNAc8QBOjX",
-  "domain": "klik.eu.auth0.com",
-  "scope":"openid profile email"
+  clientId: "GDuiq4x1reJXs8a6yDXgqJcNAc8QBOjX",
+  domain: "klik.eu.auth0.com",
+//   "scope":"openid profile email"
 }
 
 let client = createClient(options)
@@ -67,7 +67,7 @@ let client = createClient(options)
 let onLogin = setAccessToken => {
   open Js.Promise
 
-  client["authorize"](authorizeParams(~scope="openid profile email", ()), ())
+  client["webAuth"]["authorize"](authorizeParams(~scope="openid profile email", ()), ())
   |> then_((credentials: credentials) => {
     ReactNative.Alert.alert(~title="AccessToken: " ++ credentials.accessToken, ())
     setAccessToken(_ => Some(credentials.accessToken))
@@ -75,6 +75,18 @@ let onLogin = setAccessToken => {
   })
   |> catch(error => Js.log(error) |> Js.Promise.resolve)
 }
+  let onLogout = (setAccessToken) => {
+    open Js.Promise
+
+    client["webAuth.clearSession"]()
+    |> then_(result => {
+      Js.log2("RESULT: ", result)
+      ReactNative.Alert.alert(~title="Logged out!", ())
+      setAccessToken(_ => None)
+      Js.Promise.resolve()
+    })
+    |> catch(error => Js.log2("Log out cancelled", error) |> Js.Promise.resolve)
+  }
 type result<'a, 'b> =
   | Ok('a)
   | Error('b)

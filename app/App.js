@@ -9,7 +9,7 @@
 import React, { useState } from 'react';
 import { Alert, Button, StyleSheet, Text, View } from 'react-native';
 // import Auth0 from 'react-native-auth0';
-import { client as auth0,onLogin } from './RNAuth0.bs';
+import { client as auth0,onLogin,onLogout } from './RNAuth0.bs';
 // var credentials = require('./auth0-configuration');
 
 // const auth0 = new Auth0(credentials);
@@ -43,7 +43,7 @@ function App() {
 		<View style={styles.container}>
 			<Text style={styles.header}> Auth0Sample - Login </Text>
 			<Text>You are{loggedIn ? ' ' : ' not '}logged in . </Text>
-			<Button onPress={loggedIn ? _onLogout : onLogin} title={loggedIn ? 'Log Out' : 'Log In'} />
+			<Button onPress={loggedIn ? onLogout : onLogin} title={loggedIn ? 'Log Out' : 'Log In'} />
 		</View>
 	);
 }

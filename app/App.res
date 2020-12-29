@@ -14,10 +14,7 @@ let styles = {
   })
 }
 
-
-let auth0 = ReactNativeAuth0.client
-// let webAuth = ReactNativeAuth0.webAuthClient
-
+let auth0 = RNAuth0.client
 
 @react.component
 let make = () => {
@@ -26,14 +23,12 @@ let make = () => {
   let onLogin = () => {
     open Js.Promise
 
-    auth0.webAuth.authorize(
-      ~parameters=ReactNativeAuth0.authorizeParams(
-        ~scope="openid profile email",
-        (),
-      ),
+    auth0["webAuth"]["authorize"](
+      ~parameters=RNAuth0.authorizeParams(~scope="openid profile email", ()),
       (),
     )
-    |> then_((credentials: ReactNativeAuth0.credentials) => {
+    |> then_((credentials: RNAuth0.credentials) => {
+      Js.log2("Log in credentials", credentials)
       Alert.alert(~title="AccessToken: " ++ credentials.accessToken, ())
       setAccessToken(_ => Some(credentials.accessToken))
       Js.Promise.resolve()
@@ -43,7 +38,7 @@ let make = () => {
   let onLogout = () => {
     open Js.Promise
 
-    auth0.webAuth.clearSession()
+    auth0["webAuth"]["clearSession"]()
     |> then_(result => {
       Js.log2("RESULT: ", result)
       Alert.alert(~title="Logged out!", ())
@@ -55,9 +50,12 @@ let make = () => {
   let loggedIn = accessToken->Belt.Option.isSome
   <View style={styles["container"]}>
     <Text style={styles["header"]}> {"Auth0Sample - Login"->React.string} </Text>
-    <Text> {("You are " ++ {loggedIn ? " " : "not"})->React.string} </Text>
+    <Text> {("You are " ++ {loggedIn ? " " : "not"} ++ " logged in.")->React.string} </Text>
     <Button
-      onPress={_e => loggedIn ? onLogout()->Js.Promise.resolve|>ignore : onLogin()->Js.Promise.resolve|>ignore}
+      onPress={_e =>
+        loggedIn
+          ? onLogout()->Js.Promise.resolve |> ignore
+          : onLogin()->Js.Promise.resolve |> ignore}
       title={loggedIn ? "Log Out" : "Log In"}
     />
   </View>
