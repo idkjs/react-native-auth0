@@ -1,5 +1,3 @@
-
-
 @unboxed
 type rec any = Any('a): any
 type rec authorizeUrlParams = {
@@ -7,12 +5,13 @@ type rec authorizeUrlParams = {
   redirectUri: string,
   state: string,
 }
-type createUserParams<'a> = {
+type metadata
+type createUserParams = {
   email: string,
   username: option<string>,
   password: string,
   connection: string,
-  metadata: option<'a>,
+  metadata: option<metadata>,
 }
 type createUserResponse = {
   @bs.as("Id")
@@ -45,7 +44,7 @@ type passwordRealmParams = {
   audience: option<string>,
   scope: option<string>,
 }
-module PasswordRealmResponse_tokenType = {
+module PasswordRealmResponseTokenType = {
   type t = string
   @bs.inline
   let bearer = "Bearer"
@@ -55,8 +54,20 @@ type passwordRealmResponse = {
   expiresIn: int,
   idToken: string,
   scope: string,
-  tokenType: PasswordRealmResponse_tokenType.t,
+  tokenType: PasswordRealmResponseTokenType.t,
   refreshToken: option<string>,
+}
+module Scopes = {
+  type t = string
+  @bs.inline
+  let openId = "openid"
+  @bs.inline
+  let profile = "profile"
+  @bs.inline
+  let email = "email"
+  let joinWith: (array<t>, t) => t = (arr, sep) =>
+  Js.Array.joinWith(sep, arr)
+  let make: array<t> => t = arr => joinWith(arr, " ")
 }
 type rec refreshTokenResponse = {
   accessToken: string,
@@ -84,11 +95,22 @@ module PasswordlessWithEmailParamsSend = {
   let code = "code"
 }
 type passwordlessWithEmailParamsSend = PasswordlessWithEmailParamsSend.t
-type rec passwordlessWithEmailParams_authParams = any
+type rec authParams
+/**
+ * Log an event
+ * @param {string} eventName
+ * @param {[key: string]: string} metadata
+ */
+// type metadata;
+// type logEvent = {
+//   eventName: string,
+//   metadata,
+// };
+
 type passwordlessWithEmailParams = {
   email: string,
-  send: option<passwordlessWithEmailParamsSend>,
-  authParams: option<passwordlessWithEmailParams_authParams>,
+  send: option<[#link | #code]>,
+  authParams: option<authParams>,
 }
 type passwordlessWithSMSParams = {phoneNumber: string}
 type loginWithEmailParams = {
@@ -103,40 +125,42 @@ type loginWithSMSParams = {
   audience: option<string>,
   scope: option<string>,
 }
-type userInfo_CustomClaims = any
-type userInfo_1 = {
-  email: string,
-  emailVerified: bool,
-  familyName: string,
-  givenName: string,
-  name: string,
-  nickname: string,
-  picture: string,
-  sub: string,
-  updatedAt: string,
+module UserInfo = {
+  type t<'a> = {
+    email: string,
+    emailVerified: bool,
+    familyName: string,
+    givenName: string,
+    name: string,
+    nickname: string,
+    picture: string,
+    sub: string,
+    updatedAt: string,
+    customClaims:'a
+  }
 }
-type userInfo<'CustomClaims> = (userInfo_1, 'CustomClaims)
-type auth_userInfo_CustomClaims = any
-type auth<'a, 'CustomClaims> = {
+type auth<'a> = {
   authorizeUrl: (~params: authorizeUrlParams) => string,
-  createUser: (~user: createUserParams<'a>) => Js.Promise.t<unit>,
-  exchange: (~params: exchangeParams) => Js.Promise.t<unit>,
+  createUser: (~user: createUserParams) => Js.Promise.t<createUserResponse>,
+  exchange: (~params: exchangeParams) => Js.Promise.t<exchangeResponse>,
   logoutUrl: (~params: logoutParams) => string,
-  passwordRealm: (~params: passwordRealmParams) => Js.Promise.t<unit>,
-  refreshToken: (~params: refreshTokenParams) => Js.Promise.t<unit>,
+  passwordRealm: (~params: passwordRealmParams) => Js.Promise.t<passwordRealmResponse>,
+  refreshToken: (~params: refreshTokenParams) => Js.Promise.t<refreshTokenResponse>,
   resetPassword: (~params: resetPasswordParams) => Js.Promise.t<unit>,
   revoke: (~params: revokeParams) => Js.Promise.t<unit>,
-  userInfo: (~params: userInfoParams) => Js.Promise.t<unit>,
+  userInfo: (~params: userInfoParams) => Js.Promise.t<UserInfo.t<'a>>,
   passwordlessWithEmail: (~params: passwordlessWithEmailParams) => Js.Promise.t<unit>,
-  passwordlessWithSMS: (~params: passwordlessWithSMSParams) => Js.Promise.t<unit>,
-  loginWithEmail: (~params: loginWithEmailParams) => Js.Promise.t<unit>,
-  loginWithSMS: (~params: loginWithSMSParams) => Js.Promise.t<unit>,
+  passwordlessWithSMS: (~params: passwordlessWithSMSParams) => Js.Promise.t<any>,
+  loginWithEmail: (~params: loginWithEmailParams) => Js.Promise.t<any>,
+  loginWithSMS: (~params: loginWithSMSParams) => Js.Promise.t<any>,
 }
-type auth0User<'a> = {
+type identity
+type userMetadata
+type auth0User = {
   created_at: string,
   email: string,
   emailVerified: bool,
-  identities: array<any>,
+  identities: array<identity>,
   last_ip: option<string>,
   last_login: option<string>,
   logins_count: int,
@@ -145,28 +169,17 @@ type auth0User<'a> = {
   picture: option<string>,
   updated_at: string,
   userId: string,
-  userMetadata: option<'a>,
+  userMetadata: option<userMetadata>,
 }
 type getUserParams = {id: string}
-type patchUserParams<'a> = {
+type patchUserParams = {
   id: string,
-  metadata: 'a,
+  metadata: metadata,
 }
 type users<'a> = {
   getUser: (~parameters: getUserParams) => Js.Promise.t<unit>,
-  patchUser: (~parameters: patchUserParams<'a>) => Js.Promise.t<unit>,
+  patchUser: (~parameters: patchUserParams) => Js.Promise.t<unit>,
 }
-type authorizeParams = {
-  state: option<string>,
-  nonce: option<string>,
-  audience: option<string>,
-  scope: option<string>,
-  connection: option<string>,
-  language: option<string>,
-  prompt: option<string>,
-}
-type authorizeOptions = {ephemeralSession: option<bool>}
-type clearSessionParams = {federated: bool}
 type credentials = {
   accessToken: string,
   idToken: string,
@@ -175,13 +188,12 @@ type credentials = {
   scope: string,
   tokenType: string,
 }
+type authorizeParams
+@bs.obj
+external authorizeParams: (~scope: string=?, unit) => authorizeParams = ""
 type webAuth = {
-  authorize: (
-    ~parameters: authorizeParams,
-    ~options: option<authorizeOptions>=?,
-    unit,
-  ) => Js.Promise.t<unit>,
-  clearSession: (~parameters: option<clearSessionParams>=?, unit) => Js.Promise.t<unit>,
+  authorize: (. authorizeParams, unit) => Js.Promise.t<credentials>,
+  clearSession: (. unit )=> Js.Promise.t<unit>,
 }
 type options = {
   domain: string,
@@ -193,13 +205,14 @@ type usersOptions = {
 }
 
 type auth0<'a> = {
-  auth: auth<'a, 'a>,
+  auth: auth<'a>,
   webAuth: webAuth,
   users: (~token: string) => users<'a>,
 }
-type generatedAuth0Client = {
-  "authorize": @bs.meth (unit => unit),
-  "isAuthenticated": @bs.meth (bool => unit),
+type clientConfig = {
+  domain: string,
+  clientId: string,
 }
-type t
-@bs.module @bs.new external make: options => auth0<'a> = "react-native-auth0"
+
+@bs.module("react-native-auth0") @bs.new
+external createClient: clientConfig => auth0<'a> = "default"

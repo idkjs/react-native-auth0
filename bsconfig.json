@@ -1,22 +1,18 @@
 {
-  "name": "rescript-with-auth0",
-  "reason": {
-    "react-jsx": 3
-  },
-  "sources": {
-    "dir" : "app",
-    "subdirs" : true
-  },
-  "bsc-flags": ["-bs-super-errors", "-bs-no-version-header"],
-  "package-specs": [{
-    "module": "commonjs",
-    "in-source": true
-  }],
-  "suffix": ".bs.js",
-  "namespace": true,
-  "bs-dependencies": [
-    "reason-react",
-    "reason-react-native"
-  ],
-  "refmt": 3
+	"name": "rescript-with-auth0",
+	"reason": {
+		"react-jsx": 3
+	},
+	"sources": [ { "dir": "src" }, { "dir": "app", "subdirs": true, "type": "dev" } ],
+	"bsc-flags": [ "-bs-super-errors", "-bs-no-version-header" ],
+	"package-specs": [
+		{
+			"module": "commonjs",
+			"in-source": true
+		}
+	],
+	"suffix": ".bs.js",
+	"namespace": true,
+	"bs-dependencies": [ "reason-react", "reason-react-native" ],
+	"refmt": 3
 }

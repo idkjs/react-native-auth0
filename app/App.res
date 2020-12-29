@@ -1,4 +1,11 @@
 open ReactNative
+open ReactNativeAuth0
+@bs.module("./auth0-configuration") external clientId: string = "clientId"
+@bs.module("./auth0-configuration") external domain: string = "domain"
+let options: clientConfig = {
+  clientId: clientId,
+  domain: domain,
+}
 
 let styles = {
   open Style
@@ -14,7 +21,7 @@ let styles = {
   })
 }
 
-let auth0 = RNAuth0.client
+let auth0 = createClient(options)
 
 @react.component
 let make = () => {
@@ -22,12 +29,9 @@ let make = () => {
 
   let onLogin = () => {
     open Js.Promise
-
-    auth0["webAuth"]["authorize"](
-      ~parameters=RNAuth0.authorizeParams(~scope="openid profile email", ()),
-      (),
-    )
-    |> then_((credentials: RNAuth0.credentials) => {
+    open Scopes
+    auth0.webAuth.authorize(. authorizeParams(~scope=Scopes.make([openId, profile, email]), ()), ())
+    |> then_((credentials: credentials) => {
       Js.log2("Log in credentials", credentials)
       Alert.alert(~title="AccessToken: " ++ credentials.accessToken, ())
       setAccessToken(_ => Some(credentials.accessToken))
@@ -38,7 +42,7 @@ let make = () => {
   let onLogout = () => {
     open Js.Promise
 
-    auth0["webAuth"]["clearSession"]()
+    auth0.webAuth.clearSession(.)
     |> then_(result => {
       Js.log2("RESULT: ", result)
       Alert.alert(~title="Logged out!", ())
@@ -50,7 +54,7 @@ let make = () => {
   let loggedIn = accessToken->Belt.Option.isSome
   <View style={styles["container"]}>
     <Text style={styles["header"]}> {"Auth0Sample - Login"->React.string} </Text>
-    <Text> {("You are " ++ {loggedIn ? " " : "not"} ++ " logged in.")->React.string} </Text>
+    <Text> {("You are " ++ (loggedIn ? "" : "not ") ++ "logged in.")->React.string} </Text>
     <Button
       onPress={_e =>
         loggedIn
